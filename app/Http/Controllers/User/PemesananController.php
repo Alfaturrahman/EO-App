@@ -40,18 +40,26 @@ class PemesananController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'paket_id' => 'required|exists:pakets,id',
             'nama_acara' => 'required|string',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'alamat_acara' => 'required|string',
-        ]);
+        ];
+
+        // If guest (not logged in), require guest info
+        if (!Auth::check()) {
+            $rules['guest_nama'] = 'required|string|max:255';
+            $rules['guest_email'] = 'required|email';
+            $rules['guest_phone'] = 'required|string|max:20';
+        }
+
+        $validated = $request->validate($rules);
 
         $paket = Paket::findOrFail($validated['paket_id']);
         
-        $pemesanan = Pemesanan::create([
-            'user_id' => Auth::id(),
+        $pemesananData = [
             'paket_id' => $validated['paket_id'],
             'nama_acara' => $validated['nama_acara'],
             'tanggal_mulai' => $validated['tanggal_mulai'],
@@ -60,17 +68,36 @@ class PemesananController extends Controller
             'total_harga' => $paket->harga_total,
             'status_pembayaran' => 'pending',
             'status_pengambilan' => 'belum_diambil',
-        ]);
+        ];
 
-        return redirect()->route('pemesanan.show', $pemesanan->id)
-            ->with('success', 'Pemesanan berhasil dibuat. Silakan upload bukti pembayaran.');
+        // Set user_id if logged in, otherwise set guest info
+        if (Auth::check()) {
+            $pemesananData['user_id'] = Auth::id();
+        } else {
+            $pemesananData['guest_nama'] = $validated['guest_nama'];
+            $pemesananData['guest_email'] = $validated['guest_email'];
+            $pemesananData['guest_phone'] = $validated['guest_phone'];
+        }
+
+        $pemesanan = Pemesanan::create($pemesananData);
+
+        // Redirect with order ID for guest users
+        return redirect()->route('pemesanan.success', $pemesanan->id)
+            ->with('success', 'Pemesanan berhasil dibuat! Silakan simpan ID pesanan Anda: #' . $pemesanan->id);
+    }
+
+    public function success($id)
+    {
+        $pemesanan = Pemesanan::with('paket')->findOrFail($id);
+        return view('user.pemesanan.success', compact('pemesanan'));
     }
 
     public function show($id)
     {
         $pemesanan = Pemesanan::with('paket')->findOrFail($id);
         
-        if ($pemesanan->user_id !== Auth::id()) {
+        // Check access: either owns the order or is guest order (no user_id)
+        if ($pemesanan->user_id && $pemesanan->user_id !== Auth::id()) {
             abort(403);
         }
         

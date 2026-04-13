@@ -68,15 +68,9 @@
                         </p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <h4 class="text-primary mb-0">Rp {{ number_format($paket->harga_total, 0, ',', '.') }}</h4>
-                            @auth
-                                <a href="{{ route('paket.show', $paket->id) }}" class="btn btn-primary">
-                                    Detail <i class="bi bi-arrow-right"></i>
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" class="btn btn-outline-primary">
-                                    Login untuk Pesan
-                                </a>
-                            @endauth
+                            <a href="{{ route('paket.show', $paket->id) }}" class="btn btn-primary">
+                                Detail & Pesan <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>

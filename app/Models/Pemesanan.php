@@ -17,6 +17,9 @@ class Pemesanan extends Model
         'status_pembayaran',
         'status_pengambilan',
         'bukti_pembayaran',
+        'guest_nama',
+        'guest_email',
+        'guest_phone',
     ];
 
     protected $casts = [

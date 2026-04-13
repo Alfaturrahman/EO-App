@@ -157,6 +157,12 @@
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
+                    @if($pemesanan->user_id)
+                    {{-- Registered User --}}
+                    <tr>
+                        <th width="200">Tipe Pemesanan:</th>
+                        <td><span class="badge bg-success">User Terdaftar</span></td>
+                    </tr>
                     <tr>
                         <th width="200">Customer:</th>
                         <td>{{ $pemesanan->user->name }}</td>
@@ -169,6 +175,25 @@
                         <th>Telepon:</th>
                         <td>{{ $pemesanan->user->phone ?? '-' }}</td>
                     </tr>
+                    @else
+                    {{-- Guest User --}}
+                    <tr>
+                        <th width="200">Tipe Pemesanan:</th>
+                        <td><span class="badge bg-info">Guest / Tamu</span></td>
+                    </tr>
+                    <tr>
+                        <th>Nama Pemesan:</th>
+                        <td>{{ $pemesanan->guest_nama }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ $pemesanan->guest_email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Telepon:</th>
+                        <td>{{ $pemesanan->guest_phone }}</td>
+                    </tr>
+                    @endif
                     <tr>
                         <th>Nama Acara:</th>
                         <td>{{ $pemesanan->nama_acara }}</td>

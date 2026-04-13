@@ -63,11 +63,14 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// User - Protected Routes
+// Public Routes - Guest can order
+Route::get('/paket/{id}', [HomeController::class, 'show'])->name('paket.show');
+Route::get('/pemesanan/create/{paket}', [PemesananController::class, 'create'])->name('pemesanan.create');
+Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
+Route::get('/pemesanan/success/{id}', [PemesananController::class, 'success'])->name('pemesanan.success');
+
+// User - Protected Routes (requires login)
 Route::middleware('auth')->group(function () {
-    Route::get('/paket/{id}', [HomeController::class, 'show'])->name('paket.show');
-    Route::get('/pemesanan/create/{paket}', [PemesananController::class, 'create'])->name('pemesanan.create');
-    Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
     Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
     Route::get('/pemesanan/{id}', [PemesananController::class, 'show'])->name('pemesanan.show');
     Route::post('/pemesanan/{id}/upload-bukti', [PemesananController::class, 'uploadBukti'])->name('pemesanan.upload');

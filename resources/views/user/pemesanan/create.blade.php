@@ -23,25 +23,82 @@
                         @csrf
                         <input type="hidden" name="paket_id" value="{{ $paket->id }}">
                         
+                        @guest
+                        {{-- Guest Information --}}
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle"></i> <strong>Pemesanan Tanpa Login</strong>
+                            <p class="mb-0 mt-2 small">Anda memesan sebagai tamu. Mohon isi data diri Anda dengan lengkap untuk proses pemesanan.</p>
+                        </div>
+
+                        <h6 class="mb-3 fw-bold text-primary">Informasi Pemesan</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama Lengkap *</label>
+                            <input type="text" name="guest_nama" class="form-control @error('guest_nama') is-invalid @enderror" 
+                                   value="{{ old('guest_nama') }}" required placeholder="Nama lengkap Anda">
+                            @error('guest_nama')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Email *</label>
+                                <input type="email" name="guest_email" class="form-control @error('guest_email') is-invalid @enderror" 
+                                       value="{{ old('guest_email') }}" required placeholder="email@example.com">
+                                @error('guest_email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">No. Telepon *</label>
+                                <input type="tel" name="guest_phone" class="form-control @error('guest_phone') is-invalid @enderror" 
+                                       value="{{ old('guest_phone') }}" required placeholder="08123456789">
+                                @error('guest_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="mb-3 fw-bold text-primary">Detail Acara</h6>
+                        @endguest
+
                         <div class="mb-3">
                             <label class="form-label fw-bold">Nama Acara *</label>
-                            <input type="text" name="nama_acara" class="form-control" required placeholder="Misal: Wedding Budi & Ani">
+                            <input type="text" name="nama_acara" class="form-control @error('nama_acara') is-invalid @enderror" 
+                                   value="{{ old('nama_acara') }}" required placeholder="Misal: Wedding Budi & Ani">
+                            @error('nama_acara')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Tanggal Mulai *</label>
-                                <input type="date" name="tanggal_mulai" class="form-control" required min="{{ date('Y-m-d') }}">
+                                <input type="date" name="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror" 
+                                       value="{{ old('tanggal_mulai') }}" required min="{{ date('Y-m-d') }}">
+                                @error('tanggal_mulai')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Tanggal Selesai *</label>
-                                <input type="date" name="tanggal_selesai" class="form-control" required min="{{ date('Y-m-d') }}">
+                                <input type="date" name="tanggal_selesai" class="form-control @error('tanggal_selesai') is-invalid @enderror" 
+                                       value="{{ old('tanggal_selesai') }}" required min="{{ date('Y-m-d') }}">
+                                @error('tanggal_selesai')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label fw-bold">Alamat Acara *</label>
-                            <textarea name="alamat_acara" class="form-control" rows="3" required placeholder="Alamat lengkap lokasi acara"></textarea>
+                            <textarea name="alamat_acara" class="form-control @error('alamat_acara') is-invalid @enderror" 
+                                      rows="3" required placeholder="Alamat lengkap lokasi acara">{{ old('alamat_acara') }}</textarea>
+                            @error('alamat_acara')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-lg w-100">
