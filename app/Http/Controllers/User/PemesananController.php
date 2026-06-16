@@ -283,29 +283,4 @@ class PemesananController extends Controller
         
         return view('user.pemesanan.show', compact('pemesanan'));
     }
-
-    public function uploadBukti(Request $request, $id)
-    {
-        $pemesanan = Pemesanan::findOrFail($id);
-        
-        if ($pemesanan->user_id !== Auth::id()) {
-            abort(403);
-        }
-        
-        $request->validate([
-            'bukti_pembayaran' => 'required|image|max:2048',
-        ]);
-        
-        if ($request->hasFile('bukti_pembayaran')) {
-            $file = $request->file('bukti_pembayaran');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/bukti'), $filename);
-            
-            $pemesanan->update([
-                'bukti_pembayaran' => 'uploads/bukti/' . $filename,
-            ]);
-        }
-        
-        return back()->with('success', 'Bukti pembayaran berhasil diupload');
-    }
 }

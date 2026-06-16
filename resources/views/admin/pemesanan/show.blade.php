@@ -302,10 +302,22 @@
                         </div>
                     @endif
                 @else
-                    <div class="alert alert-warning mb-0">
+                    <div class="alert alert-warning mb-3">
                         <i class="bi bi-exclamation-triangle"></i> <strong>Belum Ada Bukti</strong>
-                        <p class="mb-0 mt-2 small">Customer belum mengupload bukti pembayaran. Sistem akan mengirim notifikasi otomatis.</p>
+                        <p class="mb-0 mt-2 small">Customer belum mengirim bukti atau admin belum mengunggahnya ke sistem.</p>
                     </div>
+
+                    <form method="POST" action="{{ route('admin.pemesanan.upload', $pemesanan->id) }}" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Upload Bukti Pembayaran</label>
+                            <input type="file" name="bukti_pembayaran" class="form-control" accept="image/*" required>
+                            <small class="text-muted">Format: JPG, PNG. Max: 2MB</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-upload"></i> Upload Bukti oleh Admin
+                        </button>
+                    </form>
                 @endif
             </div>
         </div>

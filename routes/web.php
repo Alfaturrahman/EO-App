@@ -82,7 +82,6 @@ Route::get('/tracking-guest/pesanan', [PemesananController::class, 'guestOrderSh
 Route::middleware('auth')->group(function () {
     Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
     Route::get('/pemesanan/{id}', [PemesananController::class, 'show'])->name('pemesanan.show');
-    Route::post('/pemesanan/{id}/upload-bukti', [PemesananController::class, 'uploadBukti'])->name('pemesanan.upload');
 });
 
 // Admin Auth Routes
@@ -121,6 +120,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // Pemesanan Management
     Route::get('/pemesanan', [AdminPemesananController::class, 'index'])->name('admin.pemesanan.index');
     Route::get('/pemesanan/{id}', [AdminPemesananController::class, 'show'])->name('admin.pemesanan.show');
+    Route::post('/pemesanan/{id}/upload-bukti', [AdminPemesananController::class, 'uploadBukti'])->name('admin.pemesanan.upload');
     Route::post('/pemesanan/{id}/validasi-pembayaran', [AdminPemesananController::class, 'validasiPembayaran'])->name('admin.pemesanan.validasi');
     Route::post('/pemesanan/{id}/update-status', [AdminPemesananController::class, 'updateStatus'])->name('admin.pemesanan.status');
 });

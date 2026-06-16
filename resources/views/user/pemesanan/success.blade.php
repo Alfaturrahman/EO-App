@@ -75,7 +75,7 @@
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <a href="https://wa.me/6281234567890?text=Halo,%20saya%20telah%20melakukan%20pemesanan%20dengan%20ID:%20{{ $pemesanan->id }}" 
+                            <a href="https://wa.me/6287787387484?text=Halo,%20saya%20telah%20melakukan%20pemesanan%20dengan%20ID:%20{{ $pemesanan->id }}" 
                                target="_blank" class="btn btn-success w-100">
                                 <i class="bi bi-whatsapp"></i> Hubungi Admin
                             </a>

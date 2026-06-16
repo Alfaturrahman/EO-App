@@ -51,6 +51,36 @@ class PemesananController extends Controller
         return view('admin.pemesanan.show', compact('pemesanan'));
     }
 
+    public function uploadBukti(Request $request, $id)
+    {
+        $pemesanan = Pemesanan::findOrFail($id);
+
+        $request->validate([
+            'bukti_pembayaran' => 'required|image|max:2048',
+        ]);
+
+        if ($request->hasFile('bukti_pembayaran')) {
+            // Replace old proof file when admin re-uploads.
+            if ($pemesanan->bukti_pembayaran) {
+                $oldPath = public_path($pemesanan->bukti_pembayaran);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $file = $request->file('bukti_pembayaran');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/bukti'), $filename);
+
+            $pemesanan->update([
+                'bukti_pembayaran' => 'uploads/bukti/' . $filename,
+                'status_pembayaran' => 'pending',
+            ]);
+        }
+
+        return back()->with('success', 'Bukti pembayaran berhasil diupload admin.');
+    }
+
     public function validasiPembayaran(Request $request, $id)
     {
         $pemesanan = Pemesanan::findOrFail($id);
