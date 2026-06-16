@@ -143,6 +143,10 @@ class PemesananController extends Controller
                         'name' => env('MAIL_FROM_NAME', 'Sonsun EO'),
                         'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
                     ],
+                    'replyTo' => [
+                        'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                        'name' => env('MAIL_FROM_NAME', 'Sonsun EO'),
+                    ],
                     'to' => [
                         [
                             'email' => $validated['guest_email'],
@@ -150,9 +154,18 @@ class PemesananController extends Controller
                     ],
                     'subject' => 'Kode OTP Tracking Pesanan Sonsun EO',
                     'textContent' => "Kode OTP tracking pesanan Anda: {$otp}\n\nKode berlaku 10 menit. Jangan bagikan kode ini ke siapa pun.",
+                    'htmlContent' => "<p>Kode OTP tracking pesanan Anda: <strong>{$otp}</strong></p><p>Kode berlaku 10 menit. Jangan bagikan kode ini ke siapa pun.</p>",
                 ]);
 
             if (!$response->successful()) {
+                Log::error('Brevo API rejected OTP request', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'from_email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                    'to_email' => $validated['guest_email'],
+                    'pemesanan_id' => $pemesanan->id,
+                ]);
+
                 throw new \RuntimeException('Brevo API error: ' . $response->status() . ' ' . $response->body());
             }
         } catch (Throwable $e) {
