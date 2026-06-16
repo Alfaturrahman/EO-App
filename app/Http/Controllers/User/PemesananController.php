@@ -89,13 +89,76 @@ class PemesananController extends Controller
 
         $pemesanan = Pemesanan::create($pemesananData);
 
-        // Send email notification
+        // Send email notification via Brevo API
         $emailTo = Auth::check() ? Auth::user()->email : $pemesanan->guest_email;
+        $namaTo = Auth::check() ? Auth::user()->name : ($pemesanan->guest_nama ?? 'Pelanggan');
         if ($emailTo) {
             try {
-                Mail::to($emailTo)->send(new PemesananCreated($pemesanan));
+                $apiKey = env('BREVO_API_KEY');
+                if (!$apiKey) {
+                    throw new \RuntimeException('BREVO_API_KEY is not configured.');
+                }
+
+                $totalFormatted = 'Rp ' . number_format($pemesanan->total_harga, 0, ',', '.');
+                $paketNama = $pemesanan->paket->nama_paket ?? '-';
+
+                $htmlContent = "
+                <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+                  <div style='background:#007bff;color:white;padding:25px;text-align:center;border-radius:8px 8px 0 0;'>
+                    <h1 style='margin:0;font-size:24px;'>&#10003; Pesanan Berhasil Dibuat!</h1>
+                    <p style='margin:5px 0 0;opacity:.9;'>Sonsun Event Organizer</p>
+                  </div>
+                  <div style='background:#f9f9f9;padding:25px;border:1px solid #e0e0e0;'>
+                    <p>Halo <strong>{$namaTo}</strong>,</p>
+                    <p>Terima kasih telah melakukan pemesanan. Berikut detail pesanan Anda:</p>
+                    <div style='background:#fff3cd;border:1px solid #ffc107;border-radius:5px;padding:12px;margin:15px 0;'>
+                      <strong>&#128204; ID Pesanan: #{$pemesanan->id}</strong><br>
+                      <small>Simpan ID ini untuk tracking pesanan Anda</small>
+                    </div>
+                    <table style='width:100%;border-collapse:collapse;margin:15px 0;'>
+                      <tr style='background:#f0f0f0;'><td style='padding:10px;border:1px solid #ddd;font-weight:bold;'>Nama Acara</td><td style='padding:10px;border:1px solid #ddd;'>{$pemesanan->nama_acara}</td></tr>
+                      <tr><td style='padding:10px;border:1px solid #ddd;font-weight:bold;'>Paket</td><td style='padding:10px;border:1px solid #ddd;'>{$paketNama}</td></tr>
+                      <tr style='background:#f0f0f0;'><td style='padding:10px;border:1px solid #ddd;font-weight:bold;'>Lokasi Acara</td><td style='padding:10px;border:1px solid #ddd;'>{$pemesanan->alamat_acara}</td></tr>
+                      <tr><td style='padding:10px;border:1px solid #ddd;font-weight:bold;'>Total Harga</td><td style='padding:10px;border:1px solid #ddd;color:#28a745;font-weight:bold;'>{$totalFormatted}</td></tr>
+                      <tr style='background:#f0f0f0;'><td style='padding:10px;border:1px solid #ddd;font-weight:bold;'>Status</td><td style='padding:10px;border:1px solid #ddd;color:#ff9800;'>Menunggu Pembayaran</td></tr>
+                    </table>
+                    <h3>Langkah Selanjutnya:</h3>
+                    <ol>
+                      <li>Kirim bukti pembayaran melalui WhatsApp ke <strong>087787387484</strong></li>
+                      <li>Sertakan <strong>ID Pesanan: #{$pemesanan->id}</strong> dalam pesan</li>
+                      <li>Tim kami akan memverifikasi dalam 1x24 jam</li>
+                    </ol>
+                    <div style='text-align:center;margin:20px 0;'>
+                      <a href='https://wa.me/6287787387484' style='background:#25d366;color:white;padding:12px 25px;text-decoration:none;border-radius:5px;font-weight:bold;'>&#128242; Hubungi via WhatsApp</a>
+                    </div>
+                  </div>
+                  <div style='background:#f0f0f0;padding:15px;text-align:center;font-size:12px;color:#666;border-radius:0 0 8px 8px;'>
+                    Tim Sonsun Event Organizer &bull; Email otomatis, jangan dibalas
+                  </div>
+                </div>";
+
+                $textContent = "Pesanan Anda Berhasil Dibuat!\n\nID Pesanan: #{$pemesanan->id}\nNama Acara: {$pemesanan->nama_acara}\nPaket: {$paketNama}\nTotal: {$totalFormatted}\nStatus: Menunggu Pembayaran\n\nKirim bukti pembayaran via WhatsApp ke 087787387484 dengan menyertakan ID Pesanan #{$pemesanan->id}.\n\nTim Sonsun Event Organizer";
+
+                Http::timeout(10)
+                    ->withHeaders([
+                        'accept' => 'application/json',
+                        'api-key' => $apiKey,
+                        'content-type' => 'application/json',
+                    ])
+                    ->post('https://api.brevo.com/v3/smtp/email', [
+                        'sender' => [
+                            'name' => env('MAIL_FROM_NAME', 'Sonsun EO'),
+                            'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                        ],
+                        'to' => [['email' => $emailTo, 'name' => $namaTo]],
+                        'subject' => "Pesanan Anda Berhasil Dibuat - ID #{$pemesanan->id}",
+                        'htmlContent' => $htmlContent,
+                        'textContent' => $textContent,
+                    ]);
+
+                Log::info('Order confirmation email sent', ['to' => $emailTo, 'pemesanan_id' => $pemesanan->id]);
             } catch (\Exception $e) {
-                \Log::error('Error sending email: ' . $e->getMessage());
+                Log::error('Error sending order confirmation email: ' . $e->getMessage(), ['pemesanan_id' => $pemesanan->id]);
             }
         }
 
