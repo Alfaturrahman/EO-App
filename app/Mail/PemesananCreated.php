@@ -28,7 +28,7 @@ class PemesananCreated extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.pemesanan-created',
+            html: 'emails.pemesanan-created',
             with: [
                 'pemesanan' => $this->pemesanan,
             ],
@@ -40,3 +40,4 @@ class PemesananCreated extends Mailable
         return [];
     }
 }
+
