@@ -168,6 +168,13 @@ class PemesananController extends Controller
 
                 throw new \RuntimeException('Brevo API error: ' . $response->status() . ' ' . $response->body());
             }
+
+            Log::info('Brevo API accepted OTP request', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'to_email' => $validated['guest_email'],
+                'pemesanan_id' => $pemesanan->id,
+            ]);
         } catch (Throwable $e) {
             Log::error('Guest OTP send failed', [
                 'exception_class' => get_class($e),
