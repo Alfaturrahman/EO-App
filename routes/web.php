@@ -68,6 +68,15 @@ Route::get('/paket/{id}', [HomeController::class, 'show'])->name('paket.show');
 Route::get('/pemesanan/create/{paket}', [PemesananController::class, 'create'])->name('pemesanan.create');
 Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
 Route::get('/pemesanan/success/{id}', [PemesananController::class, 'success'])->name('pemesanan.success');
+Route::get('/tracking-guest', [PemesananController::class, 'guestTrackingForm'])->name('guest.tracking.form');
+Route::get('/tracking-guest/send-otp', function () {
+    return redirect()->route('guest.tracking.form')
+        ->with('error', 'Silakan isi form tracking untuk mengirim OTP.');
+});
+Route::post('/tracking-guest/send-otp', [PemesananController::class, 'guestSendOtp'])->name('guest.tracking.send-otp');
+Route::get('/tracking-guest/verify', [PemesananController::class, 'guestVerifyForm'])->name('guest.tracking.verify-form');
+Route::post('/tracking-guest/verify', [PemesananController::class, 'guestVerifyOtp'])->name('guest.tracking.verify');
+Route::get('/tracking-guest/pesanan', [PemesananController::class, 'guestOrderShow'])->name('guest.tracking.order');
 
 // User - Protected Routes (requires login)
 Route::middleware('auth')->group(function () {

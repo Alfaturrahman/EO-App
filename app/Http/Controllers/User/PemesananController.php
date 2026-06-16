@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 use App\Models\Pemesanan;
 use App\Models\Paket;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class PemesananController extends Controller
 {
+    private const GUEST_TRACKING_SESSION_KEY = 'guest_tracking';
+
     public function index()
     {
         $query = Pemesanan::where('user_id', Auth::id())->with('paket');
@@ -90,6 +95,132 @@ class PemesananController extends Controller
     {
         $pemesanan = Pemesanan::with('paket')->findOrFail($id);
         return view('user.pemesanan.success', compact('pemesanan'));
+    }
+
+    public function guestTrackingForm()
+    {
+        return view('user.pemesanan.guest-tracking');
+    }
+
+    public function guestSendOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'pemesanan_id' => 'required|integer|min:1',
+            'guest_email' => 'required|email',
+        ]);
+
+        $pemesanan = Pemesanan::where('id', $validated['pemesanan_id'])
+            ->whereNull('user_id')
+            ->where('guest_email', $validated['guest_email'])
+            ->first();
+
+        if (!$pemesanan) {
+            return back()->withInput()->with('error', 'Data pesanan tidak ditemukan. Pastikan ID pesanan dan email benar.');
+        }
+
+        $tracking = $request->session()->get(self::GUEST_TRACKING_SESSION_KEY);
+        if (is_array($tracking) && isset($tracking['last_sent_at']) && now()->timestamp - (int) $tracking['last_sent_at'] < 60) {
+            return back()->withInput()->with('error', 'Kode OTP baru bisa dikirim ulang setelah 60 detik.');
+        }
+
+        $otp = (string) random_int(100000, 999999);
+
+        try {
+            Mail::raw(
+                "Kode OTP tracking pesanan Anda: {$otp}\n\nKode berlaku 10 menit. Jangan bagikan kode ini ke siapa pun.",
+                function ($message) use ($validated) {
+                    $message->to($validated['guest_email'])
+                        ->subject('Kode OTP Tracking Pesanan Sonsun EO');
+                }
+            );
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', 'Gagal mengirim OTP ke email. Silakan coba lagi.');
+        }
+
+        $request->session()->put(self::GUEST_TRACKING_SESSION_KEY, [
+            'pemesanan_id' => $pemesanan->id,
+            'guest_email' => $validated['guest_email'],
+            'otp_hash' => Hash::make($otp),
+            'expires_at' => now()->addMinutes(10)->timestamp,
+            'attempts' => 0,
+            'last_sent_at' => now()->timestamp,
+            'verified' => false,
+        ]);
+
+        return redirect()->route('guest.tracking.verify-form')
+            ->with('success', 'Kode OTP sudah dikirim ke email Anda.');
+    }
+
+    public function guestVerifyForm(Request $request)
+    {
+        $tracking = $request->session()->get(self::GUEST_TRACKING_SESSION_KEY);
+
+        if (!is_array($tracking) || empty($tracking['pemesanan_id']) || empty($tracking['guest_email'])) {
+            return redirect()->route('guest.tracking.form')->with('error', 'Silakan isi data tracking terlebih dahulu.');
+        }
+
+        return view('user.pemesanan.guest-verify', [
+            'email' => $tracking['guest_email'],
+            'pemesananId' => $tracking['pemesanan_id'],
+        ]);
+    }
+
+    public function guestVerifyOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'otp' => 'required|digits:6',
+        ]);
+
+        $tracking = $request->session()->get(self::GUEST_TRACKING_SESSION_KEY);
+        if (!is_array($tracking) || empty($tracking['otp_hash']) || empty($tracking['expires_at'])) {
+            return redirect()->route('guest.tracking.form')->with('error', 'Sesi OTP tidak valid. Silakan kirim OTP ulang.');
+        }
+
+        if (now()->timestamp > (int) $tracking['expires_at']) {
+            $request->session()->forget(self::GUEST_TRACKING_SESSION_KEY);
+            return redirect()->route('guest.tracking.form')->with('error', 'Kode OTP sudah kedaluwarsa. Silakan kirim OTP ulang.');
+        }
+
+        $attempts = (int) ($tracking['attempts'] ?? 0);
+        if ($attempts >= 5) {
+            $request->session()->forget(self::GUEST_TRACKING_SESSION_KEY);
+            return redirect()->route('guest.tracking.form')->with('error', 'Terlalu banyak percobaan OTP. Silakan mulai lagi.');
+        }
+
+        if (!Hash::check($validated['otp'], $tracking['otp_hash'])) {
+            $tracking['attempts'] = $attempts + 1;
+            $request->session()->put(self::GUEST_TRACKING_SESSION_KEY, $tracking);
+            return back()->with('error', 'Kode OTP salah. Silakan coba lagi.');
+        }
+
+        $tracking['verified'] = true;
+        $tracking['otp_hash'] = null;
+        $tracking['attempts'] = 0;
+        $request->session()->put(self::GUEST_TRACKING_SESSION_KEY, $tracking);
+
+        return redirect()->route('guest.tracking.order');
+    }
+
+    public function guestOrderShow(Request $request)
+    {
+        $tracking = $request->session()->get(self::GUEST_TRACKING_SESSION_KEY);
+
+        if (!is_array($tracking) || empty($tracking['verified']) || empty($tracking['pemesanan_id']) || empty($tracking['guest_email'])) {
+            return redirect()->route('guest.tracking.form')->with('error', 'Silakan verifikasi OTP terlebih dahulu.');
+        }
+
+        $pemesanan = Pemesanan::with('paket')
+            ->where('id', $tracking['pemesanan_id'])
+            ->whereNull('user_id')
+            ->where('guest_email', $tracking['guest_email'])
+            ->first();
+
+        if (!$pemesanan) {
+            $request->session()->forget(self::GUEST_TRACKING_SESSION_KEY);
+            return redirect()->route('guest.tracking.form')->with('error', 'Pesanan tidak ditemukan. Silakan cek kembali data Anda.');
+        }
+
+        return view('user.pemesanan.guest-show', compact('pemesanan'));
     }
 
     public function show($id)

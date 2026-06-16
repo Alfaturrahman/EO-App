@@ -80,6 +80,13 @@
                                 <i class="bi bi-whatsapp"></i> Hubungi Admin
                             </a>
                         </div>
+                        @if($pemesanan->guest_email)
+                        <div class="col-12">
+                            <a href="{{ route('guest.tracking.form') }}" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Cek Status Pesanan Guest
+                            </a>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

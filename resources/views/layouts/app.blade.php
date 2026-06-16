@@ -90,6 +90,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/') }}">Katalog Paket</a>
                     </li>
+                    @guest
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('guest.tracking.form') }}">Tracking Guest</a>
+                        </li>
+                    @endguest
                     @auth
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('pemesanan.index') }}">Pesanan Saya</a>
