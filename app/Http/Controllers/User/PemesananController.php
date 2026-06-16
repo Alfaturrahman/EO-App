@@ -8,7 +8,7 @@ use App\Models\Pemesanan;
 use App\Models\Paket;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -127,13 +127,34 @@ class PemesananController extends Controller
         $otp = (string) random_int(100000, 999999);
 
         try {
-            Mail::raw(
-                "Kode OTP tracking pesanan Anda: {$otp}\n\nKode berlaku 10 menit. Jangan bagikan kode ini ke siapa pun.",
-                function ($message) use ($validated) {
-                    $message->to($validated['guest_email'])
-                        ->subject('Kode OTP Tracking Pesanan Sonsun EO');
-                }
-            );
+            $apiKey = env('BREVO_API_KEY');
+            if (!$apiKey) {
+                throw new \RuntimeException('BREVO_API_KEY is not configured.');
+            }
+
+            $response = Http::timeout(10)
+                ->withHeaders([
+                    'accept' => 'application/json',
+                    'api-key' => $apiKey,
+                    'content-type' => 'application/json',
+                ])
+                ->post('https://api.brevo.com/v3/smtp/email', [
+                    'sender' => [
+                        'name' => env('MAIL_FROM_NAME', 'Sonsun EO'),
+                        'email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                    ],
+                    'to' => [
+                        [
+                            'email' => $validated['guest_email'],
+                        ],
+                    ],
+                    'subject' => 'Kode OTP Tracking Pesanan Sonsun EO',
+                    'textContent' => "Kode OTP tracking pesanan Anda: {$otp}\n\nKode berlaku 10 menit. Jangan bagikan kode ini ke siapa pun.",
+                ]);
+
+            if (!$response->successful()) {
+                throw new \RuntimeException('Brevo API error: ' . $response->status() . ' ' . $response->body());
+            }
         } catch (Throwable $e) {
             Log::error('Guest OTP send failed', [
                 'exception_class' => get_class($e),
