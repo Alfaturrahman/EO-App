@@ -82,6 +82,7 @@ Route::get('/tracking-guest/pesanan', [PemesananController::class, 'guestOrderSh
 Route::middleware('auth')->group(function () {
     Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
     Route::get('/pemesanan/{id}', [PemesananController::class, 'show'])->name('pemesanan.show');
+    Route::post('/pemesanan/{id}/upload-bukti', [PemesananController::class, 'uploadBukti'])->name('pemesanan.upload');
 });
 
 // Admin Auth Routes

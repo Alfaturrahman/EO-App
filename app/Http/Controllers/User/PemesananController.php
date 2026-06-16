@@ -295,4 +295,38 @@ class PemesananController extends Controller
         
         return view('user.pemesanan.show', compact('pemesanan'));
     }
+
+    public function uploadBukti(Request $request, $id)
+    {
+        $pemesanan = Pemesanan::findOrFail($id);
+        
+        // Check access: user can only upload their own order
+        if ($pemesanan->user_id && $pemesanan->user_id !== Auth::id()) {
+            abort(403);
+        }
+        
+        $request->validate([
+            'bukti_pembayaran' => 'required|image|max:2048',
+        ]);
+        
+        if ($request->hasFile('bukti_pembayaran')) {
+            // Replace old proof file if exists
+            if ($pemesanan->bukti_pembayaran) {
+                $oldPath = public_path($pemesanan->bukti_pembayaran);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $file = $request->file('bukti_pembayaran');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/bukti'), $filename);
+            
+            $pemesanan->update([
+                'bukti_pembayaran' => 'uploads/bukti/' . $filename,
+            ]);
+        }
+        
+        return back()->with('success', 'Bukti pembayaran berhasil diupload');
+    }
 }

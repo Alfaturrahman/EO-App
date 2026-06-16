@@ -307,7 +307,7 @@
                                     <h6 class="mb-1">Status Saat Ini</h6>
                                     <p class="text-muted small mb-0">
                                         @if(!$pemesanan->bukti_pembayaran)
-                                            <i class="bi bi-arrow-right"></i> Menunggu admin mengunggah bukti pembayaran
+                                            <i class="bi bi-arrow-right"></i> Menunggu upload bukti pembayaran
                                         @elseif($pemesanan->status_pembayaran != 'lunas')
                                             <i class="bi bi-arrow-right"></i> Menunggu validasi pembayaran dari admin
                                         @elseif($pemesanan->status_pengambilan == 'belum_diambil')
@@ -326,7 +326,7 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0 fw-bold">Informasi Pembayaran</h6>
+                    <h6 class="mb-0 fw-bold">Upload Bukti Pembayaran</h6>
                 </div>
                 <div class="card-body">
                     @if($pemesanan->bukti_pembayaran)
@@ -348,11 +348,19 @@
                         @endif
                     @else
                         <div class="alert alert-info mb-3">
-                            <i class="bi bi-info-circle"></i> Bukti pembayaran akan diinput oleh admin setelah Anda mengirimkan bukti transfer.
+                            <i class="bi bi-info-circle"></i> Silakan upload bukti transfer/pembayaran Anda.
                         </div>
-                        <p class="text-muted small mb-0">
-                            Silakan kirim bukti pembayaran ke admin melalui WhatsApp agar admin dapat mengunggah dan memvalidasi pembayaran Anda.
-                        </p>
+                        <form method="POST" action="{{ route('pemesanan.upload', $pemesanan->id) }}" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Pilih File Bukti</label>
+                                <input type="file" name="bukti_pembayaran" class="form-control" accept="image/*" required>
+                                <small class="text-muted">Format: JPG, PNG. Max: 2MB</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-upload"></i> Upload Bukti
+                            </button>
+                        </form>
                     @endif
                 </div>
             </div>
