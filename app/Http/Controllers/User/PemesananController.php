@@ -9,6 +9,7 @@ use App\Models\Paket;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class PemesananController extends Controller
@@ -134,6 +135,13 @@ class PemesananController extends Controller
                 }
             );
         } catch (Throwable $e) {
+            Log::error('Guest OTP send failed', [
+                'exception_class' => get_class($e),
+                'message' => $e->getMessage(),
+                'pemesanan_id' => $pemesanan->id,
+                'guest_email' => $validated['guest_email'],
+            ]);
+
             return back()->withInput()->with('error', 'Gagal mengirim OTP ke email. Silakan coba lagi.');
         }
 
