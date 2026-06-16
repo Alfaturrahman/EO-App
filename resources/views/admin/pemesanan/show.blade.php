@@ -165,15 +165,15 @@
                     </tr>
                     <tr>
                         <th width="200">Customer:</th>
-                        <td>{{ $pemesanan->user->name }}</td>
+                            <td>{{ $pemesanan->user?->name ?? $pemesanan->guest_nama ?? '-' }}</td>
                     </tr>
                     <tr>
                         <th>Email:</th>
-                        <td>{{ $pemesanan->user->email }}</td>
+                        <td>{{ $pemesanan->user?->email ?? $pemesanan->guest_email ?? '-' }}</td>
                     </tr>
                     <tr>
                         <th>Telepon:</th>
-                        <td>{{ $pemesanan->user->phone ?? '-' }}</td>
+                        <td>{{ $pemesanan->user?->phone ?? $pemesanan->guest_phone ?? '-' }}</td>
                     </tr>
                     @else
                     {{-- Guest User --}}
@@ -328,7 +328,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-1">Pesanan Dibuat</h6>
                                 <p class="text-muted small mb-1">
-                                    <i class="bi bi-person"></i> {{ $pemesanan->user->name }}
+                                     <i class="bi bi-person"></i> {{ $pemesanan->user?->name ?? $pemesanan->guest_nama ?? '-' }}
                                 </p>
                                 <p class="text-muted small mb-0">
                                     <i class="bi bi-calendar3"></i> {{ $pemesanan->created_at->format('d M Y, H:i') }}

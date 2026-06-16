@@ -118,7 +118,7 @@
                     @forelse($recentPemesanans as $p)
                         <tr>
                             <td>#{{ $p->id }}</td>
-                            <td>{{ $p->user->name }}</td>
+                            <td>{{ $p->user?->name ?? $p->guest_nama ?? '-' }}</td>
                             <td>{{ $p->paket->nama_paket ?? '-' }}</td>
                             <td>Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
                             <td>

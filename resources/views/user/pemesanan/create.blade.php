@@ -53,7 +53,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">No. Telepon *</label>
                                 <input type="tel" name="guest_phone" class="form-control @error('guest_phone') is-invalid @enderror" 
-                                       value="{{ old('guest_phone') }}" required placeholder="08123456789">
+                                       value="{{ old('guest_phone') }}" required placeholder="087787387484">
                                 @error('guest_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
