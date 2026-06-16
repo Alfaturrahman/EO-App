@@ -437,7 +437,7 @@
                                 <h6 class="mb-1">Status Saat Ini</h6>
                                 <p class="text-muted small mb-0">
                                     @if(!$pemesanan->bukti_pembayaran)
-                                        <i class="bi bi-arrow-right"></i> Menunggu customer upload bukti pembayaran
+                                        <i class="bi bi-arrow-right"></i> Menunggu admin upload bukti pembayaran dari customer
                                     @elseif($pemesanan->status_pembayaran != 'lunas')
                                         <i class="bi bi-arrow-right"></i> Menunggu validasi pembayaran
                                     @elseif($pemesanan->status_pengambilan == 'belum_diambil')

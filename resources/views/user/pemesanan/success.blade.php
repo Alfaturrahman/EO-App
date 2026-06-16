@@ -59,11 +59,16 @@
                         </div>
                     </div>
 
+                    <div class="alert alert-success mb-4">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-envelope-check"></i> Email Konfirmasi</h6>
+                        <p class="mb-0 small">Detail pesanan telah kami kirimkan ke email <strong>{{ $pemesanan->guest_email ?? Auth::user()->email }}</strong>. Periksa inbox atau folder spam Anda.</p>
+                    </div>
+
                     <div class="alert alert-warning mb-4">
                         <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle"></i> Langkah Selanjutnya</h6>
                         <ol class="text-start mb-0 small">
                             <li>Transfer pembayaran ke rekening kami</li>
-                            <li>Hubungi admin untuk upload bukti pembayaran dengan menyertakan ID Pemesanan</li>
+                            <li>Hubungi admin untuk upload bukti pembayaran dengan menyertakan ID Pemesanan <strong>#{{ $pemesanan->id }}</strong></li>
                             <li>Tunggu konfirmasi dari admin</li>
                         </ol>
                     </div>

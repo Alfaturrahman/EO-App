@@ -8,6 +8,8 @@ use App\Models\Pemesanan;
 use App\Models\Paket;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PemesananCreated;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -86,6 +88,16 @@ class PemesananController extends Controller
         }
 
         $pemesanan = Pemesanan::create($pemesananData);
+
+        // Send email notification
+        $emailTo = Auth::check() ? Auth::user()->email : $pemesanan->guest_email;
+        if ($emailTo) {
+            try {
+                Mail::to($emailTo)->send(new PemesananCreated($pemesanan));
+            } catch (\Exception $e) {
+                \Log::error('Error sending email: ' . $e->getMessage());
+            }
+        }
 
         // Redirect with order ID for guest users
         return redirect()->route('pemesanan.success', $pemesanan->id)
